@@ -6,7 +6,6 @@ require (
 	github.com/9seconds/httransform/v2 v2.0.6-0.20211227144656-7176b749109b
 	github.com/cosiner/flag v0.5.2
 	github.com/libp2p/go-reuseport v0.0.2
-	github.com/ooni/oohttp v0.0.0-20220422130738-95de2c8268f4
 	github.com/refraction-networking/utls v1.1.0
 	github.com/valyala/fasthttp v1.27.0
 )
@@ -30,5 +29,4 @@ require (
 	golang.org/x/crypto v0.0.0-20220511200225-c6db032c6c88 // indirect
 	golang.org/x/net v0.0.0-20220412020605-290c469a71a5 // indirect
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
-	golang.org/x/text v0.3.7 // indirect
 )
