@@ -1,0 +1,13 @@
+*.dll
+*.dylib
+*.exe
+*.exe~
+*.out
+*.so
+*.test
+
+vendor/
+.bin/
+.idea/
+coverage.txt
+roskomproxy
