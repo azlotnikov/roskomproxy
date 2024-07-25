@@ -7,7 +7,6 @@ import (
 	"github.com/9seconds/httransform/v2/executor"
 	"github.com/9seconds/httransform/v2/layers"
 	"github.com/cosiner/flag"
-	"io/ioutil"
 	"net"
 	"os"
 	"os/signal"
@@ -42,11 +41,11 @@ func main() {
 		panic(err)
 	}
 
-	ca, err := ioutil.ReadFile(params.Cert)
+	ca, err := os.ReadFile(params.Cert)
 	if err != nil {
 		panic(err)
 	}
-	ck, err := ioutil.ReadFile(params.Key)
+	ck, err := os.ReadFile(params.Key)
 	if err != nil {
 		panic(err)
 	}
@@ -59,6 +58,7 @@ func main() {
 			layers.TimeoutLayer{
 				Timeout: 3 * time.Minute,
 			},
+			LogLayerLayer{},
 		},
 	}
 

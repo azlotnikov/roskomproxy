@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/9seconds/httransform/v2/cache"
 	"github.com/9seconds/httransform/v2/dialers"
 	"github.com/9seconds/httransform/v2/errors"
@@ -10,6 +11,8 @@ import (
 	utls "github.com/refraction-networking/utls"
 	"github.com/valyala/fasthttp"
 	"net"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 )
@@ -17,6 +20,10 @@ import (
 const (
 	TLSConfigCacheSize = 512
 	TLSConfigTTL       = 10 * time.Minute
+)
+
+var (
+	masks = []string{"*.googlevideo.com", "googlevideo.com"}
 )
 
 type utlsDialer struct {
@@ -78,7 +85,9 @@ func (d *utlsDialer) UpgradeToTLS(ctx context.Context, conn net.Conn, host, _ st
 	}()
 	tlsConn := utls.UClient(conn, d.getTLSConfig(host), utls.HelloCustom)
 
-	if err := tlsConn.ApplyPreset(getSpec()); err != nil {
+	removeSni := matchesAnyMask(host, masks)
+
+	if err := tlsConn.ApplyPreset(getSpec(removeSni)); err != nil {
 		return nil, errors.Annotate(err, "cannot set TLS Hello spec", "tls_hello_spec", 0)
 	}
 	if err := tlsConn.Handshake(); err != nil {
@@ -141,4 +150,25 @@ func NewUTLSDialer(opt dialers.Opts, dns string) dialers.Dialer {
 	}
 
 	return rv
+}
+
+func matchesAnyMask(domain string, masks []string) bool {
+	for _, mask := range masks {
+		if matchesMask(domain, mask) {
+			return true
+		}
+	}
+	return false
+}
+
+func matchesMask(domain, mask string) bool {
+	escapedMask := strings.ReplaceAll(regexp.QuoteMeta(mask), `\*`, `.*`)
+	pattern := "^" + escapedMask + "$"
+
+	matched, err := regexp.MatchString(pattern, domain)
+	if err != nil {
+		fmt.Println("Error matching string:", err)
+		return false
+	}
+	return matched
 }

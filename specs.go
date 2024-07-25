@@ -4,7 +4,52 @@ import (
 	tls "github.com/refraction-networking/utls"
 )
 
-func getSpec() *tls.ClientHelloSpec {
+func getSpec(removeSni bool) *tls.ClientHelloSpec {
+	extensions := []tls.TLSExtension{
+		&tls.RenegotiationInfoExtension{Renegotiation: tls.RenegotiateOnceAsClient},
+		&tls.ExtendedMasterSecretExtension{},
+		&tls.SignatureAlgorithmsExtension{SupportedSignatureAlgorithms: []tls.SignatureScheme{
+			tls.ECDSAWithP256AndSHA256,
+			tls.PSSWithSHA256,
+			tls.PKCS1WithSHA256,
+			tls.ECDSAWithP384AndSHA384,
+			tls.ECDSAWithSHA1,
+			tls.PSSWithSHA384,
+			tls.PSSWithSHA384,
+			tls.PKCS1WithSHA384,
+			tls.PSSWithSHA512,
+			tls.PKCS1WithSHA512,
+			tls.PKCS1WithSHA1,
+		}},
+		&tls.StatusRequestExtension{},
+		&tls.SCTExtension{},
+		&tls.ALPNExtension{AlpnProtocols: []string{"http/1.1"}},
+		&tls.SupportedPointsExtension{SupportedPoints: []byte{
+			0x00, // pointFormatUncompressed
+		}},
+		&tls.KeyShareExtension{[]tls.KeyShare{
+			{Group: tls.X25519},
+		}},
+		&tls.PSKKeyExchangeModesExtension{[]uint8{
+			tls.PskModeDHE,
+		}},
+		&tls.SupportedVersionsExtension{[]uint16{
+			tls.VersionTLS13,
+			tls.VersionTLS12,
+			tls.VersionTLS11,
+			tls.VersionTLS10,
+		}},
+		&tls.SupportedCurvesExtension{[]tls.CurveID{
+			tls.X25519,
+			tls.CurveP256,
+			tls.CurveP384,
+			tls.CurveP521,
+		}},
+		&tls.UtlsPaddingExtension{GetPaddingLen: tls.BoringPaddingStyle},
+	}
+	if !removeSni {
+		extensions = append(extensions, &tls.SNIExtension{})
+	}
 	return &tls.ClientHelloSpec{
 		CipherSuites: []uint16{
 			tls.TLS_AES_128_GCM_SHA256,
@@ -37,48 +82,6 @@ func getSpec() *tls.ClientHelloSpec {
 		CompressionMethods: []byte{
 			0x00, // compressionNone
 		},
-		Extensions: []tls.TLSExtension{
-			&tls.RenegotiationInfoExtension{Renegotiation: tls.RenegotiateOnceAsClient},
-			//&tls.SNIExtension{},
-			&tls.UtlsExtendedMasterSecretExtension{},
-			&tls.SignatureAlgorithmsExtension{SupportedSignatureAlgorithms: []tls.SignatureScheme{
-				tls.ECDSAWithP256AndSHA256,
-				tls.PSSWithSHA256,
-				tls.PKCS1WithSHA256,
-				tls.ECDSAWithP384AndSHA384,
-				tls.ECDSAWithSHA1,
-				tls.PSSWithSHA384,
-				tls.PSSWithSHA384,
-				tls.PKCS1WithSHA384,
-				tls.PSSWithSHA512,
-				tls.PKCS1WithSHA512,
-				tls.PKCS1WithSHA1,
-			}},
-			&tls.StatusRequestExtension{},
-			&tls.SCTExtension{},
-			&tls.ALPNExtension{AlpnProtocols: []string{"http/1.1"}},
-			&tls.SupportedPointsExtension{SupportedPoints: []byte{
-				0x00, // pointFormatUncompressed
-			}},
-			&tls.KeyShareExtension{[]tls.KeyShare{
-				{Group: tls.X25519},
-			}},
-			&tls.PSKKeyExchangeModesExtension{[]uint8{
-				tls.PskModeDHE,
-			}},
-			&tls.SupportedVersionsExtension{[]uint16{
-				tls.VersionTLS13,
-				tls.VersionTLS12,
-				tls.VersionTLS11,
-				tls.VersionTLS10,
-			}},
-			&tls.SupportedCurvesExtension{[]tls.CurveID{
-				tls.X25519,
-				tls.CurveP256,
-				tls.CurveP384,
-				tls.CurveP521,
-			}},
-			&tls.UtlsPaddingExtension{GetPaddingLen: tls.BoringPaddingStyle},
-		},
+		Extensions: extensions,
 	}
 }
